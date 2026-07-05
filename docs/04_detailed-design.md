@@ -1,8 +1,8 @@
 # 詳細設計書
 
-**プロジェクト名**: 粘土細工シミュレーション Webアプリケーション「nendo」
+**プロジェクト名**: 練り切りシミュレーション Webアプリケーション「nerikiri」
 **作成日**: 2026-07-05
-**版数**: 1.5
+**版数**: 1.7
 **関連文書**: 03_basic-design.md
 
 **改訂履歴**
@@ -15,6 +15,8 @@
 | 1.3 | 2026-07-05 | 接地感の改善: ワイヤーフレームの台を無垢の「まな板」(影を受ける板)に変更し、粘土から影を落とす。基本形の高さを約1.1→約1.4に増加(実物の高さ/直径比≈0.67に相当) |
 | 1.4 | 2026-07-05 | 三角棒の線引き対応(第1案): 半径下限 0.05→0.03、変位量の算定半径に下限0.12を導入、「押す」を1.3倍に強化、メッシュ細分化レベル 4→5(頂点10,242) |
 | 1.5 | 2026-07-05 | 三角棒を専用道具として新設(groove.ts: 線分彫り+手ぶれ補正+ストローク内深さ一定)。v1.4の「押す」変更(1.3倍・変位下限・半径下限0.03)は撤回し v1.3 仕様に復元。メッシュレベル5は維持 |
+| 1.6 | 2026-07-05 | 練り切りシミュレーターへの改称に伴う用語の現行化(粘土→生地)。設計・実装の変更なし。保存形式の `format: "nendo-clay"` は互換性維持のため変更しない |
+| 1.7 | 2026-07-05 | アプリケーション名を「nendo」から「nerikiri」に改称: 保存ファイル名 `nerikiri-<日時>.json`、読込エラーメッセージを変更。保存形式の `format: "nendo-clay"` は引き続き変更しない |
 
 ---
 
@@ -43,7 +45,7 @@ export interface BrushParams {
 }
 
 export interface BrushHit {
-  point:  [number, number, number]; // 粘土表面上のヒット点
+  point:  [number, number, number]; // 生地表面上のヒット点
   normal: [number, number, number]; // ヒット点の面法線(正規化済)
 }
 
@@ -174,7 +176,7 @@ export class ClayScene {
   constructor(container: HTMLElement);
   setMesh(data: ClayMeshData): void;          // BufferGeometry 再構築(読込・リセット時)
   updateFromData(data: ClayMeshData): void;   // 位置/法線/色属性の needsUpdate 反映(毎ストローク)
-  raycast(clientX, clientY): BrushHit | null; // 画面座標→粘土表面ヒット
+  raycast(clientX, clientY): BrushHit | null; // 画面座標→生地表面ヒット
   showCursor(hit: BrushHit | null, radius: number): void; // ブラシリング表示
   setCameraEnabled(on: boolean): void;
   dispose(): void;
@@ -184,19 +186,19 @@ export class ClayScene {
 | 項目 | 設定 |
 |---|---|
 | カメラ | PerspectiveCamera fov=45、初期位置 (0, 2.4, 5.6)、注視点 (0, -0.35, 0)。作業台全体と正面マーカーが初期視界に入る俯瞰視点(v1.2変更) |
-| まな板 | BoxGeometry 4.6×0.14×3.4、木色 #c8a478、上面 y=-1.0(粘土底面が接地)。`receiveShadow` で粘土の影を受ける(F-01-04、v1.3変更) |
-| 影 | renderer.shadowMap 有効(PCFSoft)。キーライトが castShadow(mapSize 1024、範囲±2.5)、粘土メッシュが castShadow。接地感の主要因 |
+| まな板 | BoxGeometry 4.6×0.14×3.4、木色 #c8a478、上面 y=-1.0(生地底面が接地)。`receiveShadow` で生地の影を受ける(F-01-04、v1.3変更) |
+| 影 | renderer.shadowMap 有効(PCFSoft)。キーライトが castShadow(mapSize 1024、範囲±2.5)、生地メッシュが castShadow。接地感の主要因 |
 | 中心ガイド | PolarGridHelper 半径1.6 をまな板上面(y=-0.995)に不透明度0.35で重ねる(中心合わせ用) |
-| 正面マーカー | ▲(ConeGeometry、橙 #e07b3a)をまな板の手前 (0, -0.98, 1.5) に配置、先端は粘土方向。初期カメラから見て手前=正面 |
+| 正面マーカー | ▲(ConeGeometry、橙 #e07b3a)をまな板の手前 (0, -0.98, 1.5) に配置、先端は生地方向。初期カメラから見て手前=正面 |
 | 高さ目盛り | 左手前 (-1.25, ・, 1.35) に高さ2.0のポール+0.5刻みの目盛り線4本(F-01-04) |
 | カメラ操作 | OrbitControls。回転=右ボタン、ズーム=ホイール、パン=中ボタン。左ボタンは無効化(F-02-03)。zoom範囲 1.6〜8 |
 | ライト | HemisphereLight(空色/地面色) + DirectionalLight(キー、castShadow。v1.3で影有効化) + 弱い DirectionalLight(フィル) |
-| 粘土マテリアル | MeshStandardMaterial { vertexColors: true, roughness: 0.9, metalness: 0 } — マットな粘土質感(F-01-02) |
+| 生地マテリアル | MeshStandardMaterial { vertexColors: true, roughness: 0.9, metalness: 0 } — 練り切りらしいマットな質感(F-01-02) |
 | 背景 | 暖色系の淡いグラデーション(和菓子の雰囲気) |
 | カーソル | ヒット点に接平面向きのリング(RingGeometry)。半径=ブラシ半径。非ヒット時は非表示(F-03-11) |
 | リサイズ | ResizeObserver でコンテナ追従 |
 
-`raycast` は Three.js の `Raycaster` を粘土メッシュに対して実行し、`face.normal`(ワールド変換済)とヒット点を返す。
+`raycast` は Three.js の `Raycaster` を生地メッシュに対して実行し、`face.normal`(ワールド変換済)とヒット点を返す。
 
 ## 3. アプリ層詳細設計
 
@@ -206,7 +208,7 @@ export class ClayScene {
 
 | 状態 | イベント | 遷移・動作 |
 |---|---|---|
-| idle | pointerdown(左) & 粘土ヒット | sculpting へ。`onStrokeStart()` 通知、ブラシ1回適用 |
+| idle | pointerdown(左) & 生地ヒット | sculpting へ。`onStrokeStart()` 通知、ブラシ1回適用 |
 | idle | pointermove | カーソルリング更新のみ |
 | sculpting | pointermove | レイキャスト再実行、ヒット時ブラシ適用 + 法線再計算 + `updateFromData` |
 | sculpting | pointerup / pointerleave | idle へ。変更があれば `onStrokeEnd()` 通知(履歴確定) |
@@ -231,7 +233,7 @@ export class ClayScene {
 | 形状切替(F-01-03) | 確認なしで新形状生成(履歴には push するので Undo 可能) |
 | 全体を塗る(F-04-02) | colors 全体を選択色で上書き、履歴 push |
 | リセット(F-06-01) | `confirm()` 確認後、現在の shape で再生成、履歴 push |
-| 保存(F-06-02) | `serializeMesh` → Blob → a[download] クリックで `nendo-<日時>.json` |
+| 保存(F-06-02) | `serializeMesh` → Blob → a[download] クリックで `nerikiri-<日時>.json` |
 | 読込(F-06-03/04) | input[type=file] → `deserializeMesh`。成功: setMesh + 履歴 push / 失敗: `alert('ファイルを読み込めませんでした…')` で現状維持 |
 | Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z | Undo / Redo(F-05-04)。input フォーカス時は無視 |
 

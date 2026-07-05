@@ -1,7 +1,7 @@
 {
-  "name": "nendo",
+  "name": "nerikiri",
   "version": "0.1.0",
-  "description": "Web上で粘土細工(練り切り成形)を行える3Dモデリングシミュレーションアプリ",
+  "description": "Webブラウザ上で和菓子「練り切り」の成形を楽しめる3Dシミュレーションアプリ",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -152,7 +152,7 @@ describe('applyBrush', () => {
     expect(mesh.colors[i * 3 + 1]).toBeLessThan(1); // G は初期色から赤方向へ減少
   });
 
-  // UT-B-11: 戻り値は影響頂点数。粘土から離れたヒットでは0
+  // UT-B-11: 戻り値は影響頂点数。生地から離れたヒットでは0
   it('戻り値: ヒットが遠いと0、近いと正の数', () => {
     const mesh = createShape('sphere');
     const far: BrushHit = { point: [10, 10, 10], normal: [0, 0, 1] };

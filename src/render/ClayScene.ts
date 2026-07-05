@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { BrushHit, ClayMeshData } from '../core/types';
 
 /**
- * Three.js シーン管理。粘土メッシュの描画・カメラ操作・レイキャスト・
+ * Three.js シーン管理。生地メッシュの描画・カメラ操作・レイキャスト・
  * ブラシカーソル表示を担う。
  */
 export class ClayScene {
@@ -32,7 +32,7 @@ export class ClayScene {
 
     // カメラ操作: 回転=右 / パン=中。左はスカルプト専用(F-02-03)
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, -0.35, 0); // 台上の粘土を見下ろす注視点
+    this.controls.target.set(0, -0.35, 0); // 台上の生地を見下ろす注視点
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.12;
     this.controls.minDistance = 1.6;
@@ -43,7 +43,7 @@ export class ClayScene {
       RIGHT: THREE.MOUSE.ROTATE,
     };
 
-    // ライティング: 粘土のマット質感が映える構成
+    // ライティング: 生地のマット質感が映える構成
     const hemi = new THREE.HemisphereLight('#fff4e0', '#5a4a3a', 0.9);
     const key = new THREE.DirectionalLight('#ffffff', 1.4);
     key.position.set(2.5, 3.5, 2.0);
@@ -60,7 +60,7 @@ export class ClayScene {
     fill.position.set(-2.5, -1.0, -2.0);
     this.scene.add(hemi, key, fill);
 
-    // まな板: 粘土の底面 y=-1 がぴったり載る無垢の板。影を受けて接地感を出す(F-01-04)
+    // まな板: 生地の底面 y=-1 がぴったり載る無垢の板。影を受けて接地感を出す(F-01-04)
     const BOARD_TOP = -1.0;
     const board = new THREE.Mesh(
       new THREE.BoxGeometry(4.6, 0.14, 3.4),
@@ -82,7 +82,7 @@ export class ClayScene {
     gridMat.opacity = 0.35;
     this.scene.add(grid);
 
-    // 高さの目盛り: まな板の左手前に0.5刻み(粘土の高さの目安)
+    // 高さの目盛り: まな板の左手前に0.5刻み(生地の高さの目安)
     const POLE_X = -1.25;
     const POLE_Z = 1.35;
     const tickMat = new THREE.LineBasicMaterial({ color: '#b09a75' });
@@ -111,7 +111,7 @@ export class ClayScene {
       new THREE.MeshBasicMaterial({ color: '#e07b3a' }),
     );
     marker.position.set(0, BOARD_TOP + 0.02, 1.5);
-    marker.rotation.x = -Math.PI / 2; // 先端を粘土(中心)へ向ける
+    marker.rotation.x = -Math.PI / 2; // 先端を生地(中心)へ向ける
     this.scene.add(marker);
 
     // ブラシカーソルリング
@@ -138,7 +138,7 @@ export class ClayScene {
     });
 
     // デバッグ用フック(開発時のみ使用)
-    (window as unknown as Record<string, unknown>).__nendoScene = this;
+    (window as unknown as Record<string, unknown>).__nerikiriScene = this;
   }
 
   get domElement(): HTMLCanvasElement {
@@ -179,7 +179,7 @@ export class ClayScene {
     geo.computeBoundingBox();
   }
 
-  /** 画面座標から粘土表面へのレイキャスト。非ヒット時 null。 */
+  /** 画面座標から生地表面へのレイキャスト。非ヒット時 null。 */
   raycast(clientX: number, clientY: number): BrushHit | null {
     if (!this.clay) return null;
     const rect = this.renderer.domElement.getBoundingClientRect();

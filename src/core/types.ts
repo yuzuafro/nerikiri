@@ -1,4 +1,4 @@
-/** 粘土メッシュの中心データ構造。トポロジー(indices)は生成後不変。 */
+/** 生地メッシュの中心データ構造。トポロジー(indices)は生成後不変。 */
 export interface ClayMeshData {
   positions: Float32Array; // (x,y,z) × 頂点数
   normals: Float32Array; // (x,y,z) × 頂点数
@@ -30,7 +30,7 @@ export interface BrushHit {
 
 export type ShapeKind = 'sphere' | 'nerikiri';
 
-/** 初期粘土色(白あん) */
+/** 初期の生地色(白あん) */
 export const INITIAL_COLOR: [number, number, number] = [
   0xf5 / 255,
   0xf0 / 255,

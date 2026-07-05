@@ -22,7 +22,7 @@
   <text class="text" x="520" y="217">pointermove</text>
 
   <rect class="box" x="330" y="280" width="540" height="70"/>
-  <text class="text" x="350" y="320">画面座標をレイキャストし、粘土表面ヒット点を取得</text>
+  <text class="text" x="350" y="320">画面座標をレイキャストし、生地表面ヒット点を取得</text>
 
   <polygon class="decision" points="600,390 760,460 600,530 440,460"/>
   <text class="text" x="555" y="467">ヒットあり?</text>

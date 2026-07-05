@@ -9,7 +9,7 @@
   </defs>
 
   <text class="title" x="30" y="40">ディレクトリ構成</text>
-  <text class="item" x="40" y="90">nendo/</text>
+  <text class="item" x="40" y="90">nerikiri/</text>
 
   <line class="line" x1="60" y1="110" x2="60" y2="700"/>
 

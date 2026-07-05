@@ -1,8 +1,8 @@
 # 基本設計書
 
-**プロジェクト名**: 粘土細工シミュレーション Webアプリケーション「nendo」
+**プロジェクト名**: 練り切りシミュレーション Webアプリケーション「nerikiri」
 **作成日**: 2026-07-05
-**版数**: 1.2
+**版数**: 1.4
 **関連文書**: 02_requirements-definition.md
 
 **改訂履歴**
@@ -12,6 +12,8 @@
 | 1.0 | 2026-07-05 | 初版 |
 | 1.1 | 2026-07-05 | 初期形状プリセットを「球・基本形」の2種に変更(F-01-03改訂)。作業台グリッド・正面マーカー・高さ目盛りをシーン構成に追加(F-01-04) |
 | 1.2 | 2026-07-05 | 道具「三角棒」(線分彫りエンジン groove.ts)を追加(F-03-12)。点ブラシとは別方式(軌跡の線分に沿ったV字彫り+手ぶれ補正) |
+| 1.3 | 2026-07-05 | 練り切りシミュレーターへの改称に伴う用語の現行化(粘土→生地)。形状生成モジュールのプリセット記載を現行仕様(球/基本形)に修正。図の編集元リンクを実在する .drawio.svg に修正。機能変更なし |
+| 1.4 | 2026-07-05 | アプリケーション名を「nendo」から「nerikiri」に改称。保存ファイル形式の `format: "nendo-clay"` は互換性維持のため変更しない。機能変更なし |
 
 ---
 
@@ -23,7 +25,7 @@
 
 ![全体構成図](diagrams/system-architecture.drawio.svg)
 
-編集元: [diagrams/system-architecture.drawio](diagrams/system-architecture.drawio)
+編集元: [diagrams/system-architecture.drawio.svg](diagrams/system-architecture.drawio.svg)(draw.io で直接編集可能)
 
 ### 1.2 技術選定
 
@@ -51,13 +53,13 @@
 | モジュール | ファイル | 概要 | 対応要件 |
 |---|---|---|---|
 | 型定義 | `src/core/types.ts` | `ClayMeshData`、ブラシ種別等の共通型 | - |
-| 形状生成 | `src/core/geometry.ts` | イコスフィア生成、初期形状プリセット(球/まんじゅう/俵) | F-01-01, F-01-03 |
+| 形状生成 | `src/core/geometry.ts` | イコスフィア生成、初期形状プリセット(球/基本形) | F-01-01, F-01-03 |
 | ブラシ演算 | src/core/brushes.ts | 点ブラシ7種(押す/引く/なめらか/つまむ/ふくらます/ならす/塗る)の頂点変形・彩色、フォールオフ | F-03-*, F-04-01 |
 | 三角棒 | src/core/groove.ts | 手ぶれ補正済みの軌跡を線分としてV字断面で彫る線引きエンジン。1ストローク内の彫り深さを管理 | F-03-12 |
 | 法線計算 | `src/core/normals.ts` | 変形後の頂点法線再計算 | F-01-02 |
 | 履歴管理 | `src/core/history.ts` | スナップショット方式のUndo/Redo | F-05-* |
 | 直列化 | `src/core/serialization.ts` | 形状・色のJSON化と復元、バリデーション | F-06-02〜04 |
-| シーン描画 | `src/render/ClayScene.ts` | シーン・ライト・粘土メッシュ・カーソルリング、作業台グリッド・正面マーカー・高さ目盛り、カメラ操作(OrbitControls) | F-01-02, F-01-04, F-02-*, F-03-11 |
+| シーン描画 | `src/render/ClayScene.ts` | シーン・ライト・生地メッシュ・カーソルリング、作業台グリッド・正面マーカー・高さ目盛り、カメラ操作(OrbitControls) | F-01-02, F-01-04, F-02-*, F-03-11 |
 | 操作制御 | `src/app/SculptController.ts` | ポインタイベント→レイキャスト→ブラシ適用→ストローク確定 | F-03-01, F-05-01 |
 | 統合 | `src/app/App.ts` | 全体の状態(選択ツール・色・ブラシ設定)と各層の結線、リセット/保存/読込 | F-06-*, F-07-* |
 | ツールUI | `src/ui/Toolbar.ts` | ツールパネル・スライダー・パレットのDOM構築 | F-07-*, F-03-08/09, F-04-03/04 |
@@ -69,23 +71,23 @@
 
 ![画面レイアウト図](diagrams/screen-layout.drawio.svg)
 
-編集元: [diagrams/screen-layout.drawio](diagrams/screen-layout.drawio)
+編集元: [diagrams/screen-layout.drawio.svg](diagrams/screen-layout.drawio.svg)(draw.io で直接編集可能)
 
 ### 3.2 操作体系
 
 | 入力 | 動作 | 対応要件 |
 |---|---|---|
-| 左ボタンドラッグ(粘土上) | 選択中ブラシの適用(ストローク) | F-03-01 |
+| 左ボタンドラッグ(生地上) | 選択中ブラシの適用(ストローク) | F-03-01 |
 | 右ボタンドラッグ | カメラ回転 | F-02-01 |
 | ホイール | ズーム | F-02-02 |
 | Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z | Undo / Redo | F-05-04 |
-| ポインタ移動(粘土上) | ブラシ範囲リング表示 | F-03-11 |
+| ポインタ移動(生地上) | ブラシ範囲リング表示 | F-03-11 |
 
 カメラ操作は右ボタン・ホイールのみに割り当て、左ボタンはスカルプト専用とすることで誤変形を防ぐ(F-02-03)。
 
 ## 4. データ設計
 
-### 4.1 粘土メッシュデータ(コア層の中心データ構造)
+### 4.1 生地メッシュデータ(コア層の中心データ構造)
 
 ```ts
 interface ClayMeshData {
@@ -127,7 +129,7 @@ interface ClayMeshData {
 
 ![スカルプト処理フロー図](diagrams/sculpt-flow.drawio.svg)
 
-編集元: [diagrams/sculpt-flow.drawio](diagrams/sculpt-flow.drawio)
+編集元: [diagrams/sculpt-flow.drawio.svg](diagrams/sculpt-flow.drawio.svg)(draw.io で直接編集可能)
 
 ### 5.2 ブラシ共通方式
 
@@ -153,4 +155,4 @@ interface ClayMeshData {
 
 ![ディレクトリ構成図](diagrams/directory-structure.drawio.svg)
 
-編集元: [diagrams/directory-structure.drawio](diagrams/directory-structure.drawio)
+編集元: [diagrams/directory-structure.drawio.svg](diagrams/directory-structure.drawio.svg)(draw.io で直接編集可能)

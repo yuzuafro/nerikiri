@@ -144,7 +144,7 @@ export class App {
       .replace(/[-:]/g, '')
       .slice(0, 15);
     a.href = url;
-    a.download = `nendo-${stamp}.json`;
+    a.download = `nerikiri-${stamp}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }

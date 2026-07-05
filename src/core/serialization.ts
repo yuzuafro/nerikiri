@@ -1,12 +1,13 @@
 import type { ClayMeshData, ShapeKind } from './types';
 import { recomputeNormals } from './normals';
 
+// 旧アプリ名由来の識別子だが、既存の保存ファイルとの互換性維持のため変更しない
 const FORMAT = 'nendo-clay';
 const VERSION = 1;
 // 旧版('manju'/'tawara')のファイルは未知shape扱いで sphere にフォールバックする
 const SHAPES: ShapeKind[] = ['sphere', 'nerikiri'];
 
-/** 現在の粘土をJSON文字列に変換する。法線は保存しない(読込時に再計算)。 */
+/** 現在の生地をJSON文字列に変換する。法線は保存しない(読込時に再計算)。 */
 export function serializeMesh(mesh: ClayMeshData, shape: ShapeKind): string {
   return JSON.stringify({
     format: FORMAT,
@@ -23,7 +24,7 @@ function isNumberArray(v: unknown): v is number[] {
 }
 
 /**
- * JSON文字列から粘土を復元する。形式不正の場合は Error を throw する。
+ * JSON文字列から生地を復元する。形式不正の場合は Error を throw する。
  */
 export function deserializeMesh(json: string): {
   mesh: ClayMeshData;
@@ -40,7 +41,7 @@ export function deserializeMesh(json: string): {
   }
   const obj = data as Record<string, unknown>;
 
-  if (obj.format !== FORMAT) throw new Error('nendoの保存ファイルではありません');
+  if (obj.format !== FORMAT) throw new Error('nerikiriの保存ファイルではありません');
   if (obj.version !== VERSION) throw new Error('対応していないバージョンです');
 
   const { positions, colors, indices } = obj;

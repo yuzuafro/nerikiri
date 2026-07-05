@@ -95,7 +95,7 @@ function applyNerikiriProfile(positions: Float32Array): void {
   }
 }
 
-/** 初期形状の粘土メッシュを生成する。 */
+/** 初期形状の生地メッシュを生成する。 */
 export function createShape(kind: ShapeKind): ClayMeshData {
   const { positions, indices } = createIcosphere(DEFAULT_SUBDIVISIONS, 1);
   if (kind === 'nerikiri') applyNerikiriProfile(positions);
