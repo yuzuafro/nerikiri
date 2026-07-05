@@ -42,6 +42,8 @@ export function applyBrush(
   const { kind, radius, strength } = params;
   const [hx, hy, hz] = hit.point;
   const [nx, ny, nz] = hit.normal;
+  // 三角棒は線分彫り(groove.ts)で処理する。点ブラシとしては何もしない
+  if (kind === 'sankaku') return 0;
   // 練り切りの繊細な手作業を想定した控えめな基準変位量
   const step = strength * radius * 0.05;
   const vertexCount = positions.length / 3;

@@ -160,6 +160,15 @@ describe('applyBrush', () => {
     expect(applyBrush(mesh, HIT, makeBrush())).toBeGreaterThan(0);
   });
 
+  // UT-B-13: sankaku は点ブラシとして適用されない(線分彫り groove.ts の担当)
+  it('sankaku を applyBrush に渡しても何も変化しない', () => {
+    const mesh = createShape('sphere');
+    const before = mesh.positions.slice();
+    const affected = applyBrush(mesh, HIT, makeBrush({ kind: 'sankaku' }));
+    expect(affected).toBe(0);
+    expect(mesh.positions).toEqual(before);
+  });
+
   // UT-B-12: strength が大きいほど変位が大きい
   it('強さに応じて変位量が増える', () => {
     const weak = createShape('sphere');

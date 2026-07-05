@@ -70,8 +70,11 @@ export function createIcosphere(
   return { positions, indices };
 }
 
-/** 細分化レベル(頂点2,562 / 三角形5,120) */
-export const DEFAULT_SUBDIVISIONS = 4;
+/**
+ * 細分化レベル(頂点10,242 / 三角形20,480)。
+ * 三角棒による線引き(小半径ブラシ)に必要な解像度。頂点間隔 ≈ 0.033
+ */
+export const DEFAULT_SUBDIVISIONS = 5;
 
 /**
  * 練り切りの基本形プロファイルを単位球に適用する。

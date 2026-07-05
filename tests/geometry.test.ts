@@ -10,6 +10,7 @@ describe('createIcosphere', () => {
     [2, 162, 320],
     [3, 642, 1280],
     [4, 2562, 5120],
+    [5, 10242, 20480],
   ])('レベル%iで頂点%i・三角形%i', (level, verts, tris) => {
     const { positions, indices } = createIcosphere(level, 1);
     expect(positions.length).toBe(verts * 3);

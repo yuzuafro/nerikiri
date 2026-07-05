@@ -33,6 +33,7 @@ const TOOLS: { kind: BrushKind; label: string; title: string }[] = [
   { kind: 'pinch', label: 'つまむ', title: '生地を指先で寄せて畝・エッジを立てる' },
   { kind: 'inflate', label: 'ふくらます', title: '丸みを保ったまま全体的にふっくらさせる' },
   { kind: 'flatten', label: 'ならす', title: 'ヘラで押さえるように面を平らにする' },
+  { kind: 'sankaku', label: '三角棒', title: 'V字の細い線を引く(手ぶれ補正付き)。太さ・深さは「強さ」で調整' },
   { kind: 'paint', label: '塗る', title: '選択色をぼかしながら塗る' },
 ];
 

@@ -2,7 +2,7 @@
 
 **プロジェクト名**: 粘土細工シミュレーション Webアプリケーション「nendo」
 **作成日**: 2026-07-05
-**版数**: 1.3
+**版数**: 1.5
 **関連文書**: 03_basic-design.md
 
 **改訂履歴**
@@ -13,6 +13,8 @@
 | 1.1 | 2026-07-05 | 操作感フィードバック対応: 変位量を練り切り向けに減衰(基準変位 0.15→0.05、既定強さ 0.5→0.3)、ブラシ適用の頻度制限(25ms)追加、「つまむ」を接線方向ピンチ(畝立て)に変更、道具説明の常時表示を追加 |
 | 1.2 | 2026-07-05 | 初期形状を「球・基本形(練り切りプロファイル)」の2種に変更。作業台グリッド・正面マーカー(▲)・高さ目盛りポールを追加し、初期カメラを俯瞰視点に変更 |
 | 1.3 | 2026-07-05 | 接地感の改善: ワイヤーフレームの台を無垢の「まな板」(影を受ける板)に変更し、粘土から影を落とす。基本形の高さを約1.1→約1.4に増加(実物の高さ/直径比≈0.67に相当) |
+| 1.4 | 2026-07-05 | 三角棒の線引き対応(第1案): 半径下限 0.05→0.03、変位量の算定半径に下限0.12を導入、「押す」を1.3倍に強化、メッシュ細分化レベル 4→5(頂点10,242) |
+| 1.5 | 2026-07-05 | 三角棒を専用道具として新設(groove.ts: 線分彫り+手ぶれ補正+ストローク内深さ一定)。v1.4の「押す」変更(1.3倍・変位下限・半径下限0.03)は撤回し v1.3 仕様に復元。メッシュレベル5は維持 |
 
 ---
 
@@ -29,11 +31,13 @@ export interface ClayMeshData {
 }
 
 export type BrushKind =
-  | 'pull' | 'push' | 'smooth' | 'pinch' | 'inflate' | 'flatten' | 'paint';
+  | 'pull' | 'push' | 'smooth' | 'pinch' | 'inflate' | 'flatten'
+  | 'sankaku' // 三角棒(線引き)。点ブラシではなく線分彫り(groove.ts)で適用
+  | 'paint';
 
 export interface BrushParams {
   kind: BrushKind;
-  radius: number;      // 0.05..0.8
+  radius: number;      // 0.05..0.8(sankaku は半径不使用、太さ・深さは strength で決定)
   strength: number;    // 0.1..1.0
   color: [number, number, number]; // paint 用 RGB(0..1)
 }
@@ -50,8 +54,8 @@ export type ShapeKind = 'sphere' | 'nerikiri';
 
 | 関数 | 仕様 |
 |---|---|
-| `createIcosphere(subdivisions: number, radius: number): {positions, indices}` | 正二十面体を `subdivisions` 回細分化し半径 `radius` の球面へ射影する。エッジ中点は Map(キー: 頂点ペア文字列)で共有し重複頂点を作らない。レベル4で頂点2,562・三角形5,120 |
-| `createShape(kind: ShapeKind): ClayMeshData` | イコスフィア(レベル4, 半径1)を生成後、`kind` に応じたプロファイルを適用し、法線を再計算、色は初期色(白 `#f5f0e8` 相当)で塗りつぶして返す |
+| `createIcosphere(subdivisions: number, radius: number): {positions, indices}` | 正二十面体を `subdivisions` 回細分化し半径 `radius` の球面へ射影する。エッジ中点は Map(キー: 頂点ペア文字列)で共有し重複頂点を作らない。レベル5で頂点10,242・三角形20,480 |
+| `createShape(kind: ShapeKind): ClayMeshData` | イコスフィア(レベル5, 半径1)を生成後、`kind` に応じたプロファイルを適用し、法線を再計算、色は初期色(白 `#f5f0e8` 相当)で塗りつぶして返す |
 
 プリセット(F-01-03、v1.2で全面改訂)。いずれも底面 y=-1(まな板に接地):
 
@@ -62,7 +66,7 @@ export type ShapeKind = 'sphere' | 'nerikiri';
 
 **イコスフィア細分化アルゴリズム**
 1. 黄金比 φ から正二十面体の12頂点・20面を定義する。
-2. 各細分化パスで三角形1枚を4枚に分割する。エッジ中点のインデックスは `min(i,j)*N + max(i,j)` をキーにキャッシュし共有する。
+2. 各細分化パスで三角形1枚を4枚に分割する。エッジ中点のインデックスは文字列キー `"min(i,j)-max(i,j)"` でキャッシュし共有する(単体テストで検出したBUG-01の修正済み方式)。
 3. 全頂点を正規化し `radius` 倍して球面へ射影する。
 
 ### 1.3 `src/core/brushes.ts` — ブラシ演算
@@ -75,12 +79,12 @@ export function applyBrush(mesh: ClayMeshData, hit: BrushHit, params: BrushParam
 
 **フォールオフ(F-03-10)**: `t = clamp(1 - dist/radius, 0, 1)` に対し `w = t*t*(3-2t)`(smoothstep)。`dist ≥ radius` で 0、`dist = 0` で 1。
 
-**共通処理**: 全頂点を走査し、`hit.point` からの距離 `d < radius` の頂点 i に重み `w_i = falloff(d, radius)` を計算して各ブラシの変位則を適用する。1適用あたりの基準変位量 `step = strength * radius * 0.05`(半径に比例。練り切りの繊細な手作業を想定し控えめに設定。v1.1で0.15から減衰)。
+**共通処理**: 全頂点を走査し、`hit.point` からの距離 `d < radius` の頂点 i に重み `w_i = falloff(d, radius)` を計算して各ブラシの変位則を適用する。1適用あたりの基準変位量 `step = strength * radius * 0.05`(半径に比例。練り切りの繊細な手作業を想定し控えめに設定。v1.1で0.15から減衰、v1.4の下限導入はv1.5で撤回)。`sankaku` は点ブラシとして処理せず 0 を返す(1.7節の groove.ts が担当)。
 
 | kind | 変位則(頂点 p、重み w) | 対応要件 |
 |---|---|---|
 | `pull` | `p += hit.normal * step * w` | F-03-03 |
-| `push` | `p -= hit.normal * step * w` | F-03-02 |
+| `push` | `p -= hit.normal * step * w`(v1.4の1.3倍強化はv1.5で撤回) | F-03-02 |
 | `smooth` | 隣接頂点平均 `avg(p)` へ `p += (avg - p) * strength * 0.35 * w`。隣接関係は indices から遅延構築し WeakMap でキャッシュ | F-03-04 |
 | `pinch` | ヒット点への差分 `t = hit.point - p` の**接線成分** `t⊥ = t - hit.normal * dot(t, hit.normal)` で寄せ集め、わずかに持ち上げる: `p += t⊥ * strength * 0.1 * w + hit.normal * step * 0.5 * w`。生地を指先で寄せて畝・エッジを立てる練り切りの「摘み」を再現(v1.1で3D引き寄せから変更) | F-03-05 |
 | `inflate` | 頂点自身の法線方向 `p += n_p * step * 0.8 * w` | F-03-06 |
@@ -141,6 +145,28 @@ export function deserializeMesh(json: string): { mesh: ClayMeshData; shape: Shap
 
 法線は復元後に `recomputeNormals` で再生成する。
 
+### 1.7 `src/core/groove.ts` — 三角棒(線分彫り)(v1.5新設)
+
+```ts
+export function grooveWidth(strength: number): number;  // 0.045 + 0.055×strength(0.05..0.10)
+export function grooveDepth(strength: number): number;  // 0.015 + 0.05×strength(0.02..0.065)
+
+export class GrooveStroke {
+  constructor(vertexCount: number);  // 1ストロークごとに生成
+  apply(mesh, from: BrushHit, to: BrushHit, strength: number): number; // 戻り値: 変位頂点数
+}
+```
+
+現実の三角棒の挙動を模した設計(F-03-12):
+
+| 性質 | 実装 |
+|---|---|
+| 連続した線(点線にならない) | 前回位置→現在位置の**線分**への垂直距離で彫る(点ブラシの連打ではない)。ポインタのサンプリング間隔に依存しない |
+| V字の断面 | 線分への距離 d に対し線形減衰 `target = depth × (1 - d/width)`(smoothstepではなく三角棒の稜の跡) |
+| 一筆の深さは一定 | 頂点ごとの彫り済み深さ `carved[]` をストローク内で保持し、`target > carved` の差分だけ彫る。同じ場所を何度なぞっても、折れ線の継ぎ目でも深さが揃う |
+| 重ね引きで深くなる | 新しいストロークで `GrooveStroke` を作り直す(carved がリセットされる) |
+| 道具の形は固定 | 太さ・深さは strength(押し付ける力)のみで決定。半径スライダーは不使用 |
+| 彫る方向 | 線分両端の面法線の平均(正規化) |
 ## 2. 描画層詳細設計 — `src/render/ClayScene.ts`
 
 ```ts
@@ -164,7 +190,7 @@ export class ClayScene {
 | 正面マーカー | ▲(ConeGeometry、橙 #e07b3a)をまな板の手前 (0, -0.98, 1.5) に配置、先端は粘土方向。初期カメラから見て手前=正面 |
 | 高さ目盛り | 左手前 (-1.25, ・, 1.35) に高さ2.0のポール+0.5刻みの目盛り線4本(F-01-04) |
 | カメラ操作 | OrbitControls。回転=右ボタン、ズーム=ホイール、パン=中ボタン。左ボタンは無効化(F-02-03)。zoom範囲 1.6〜8 |
-| ライト | HemisphereLight(空色/地面色) + DirectionalLight(キー、影なし) + 弱い DirectionalLight(フィル) |
+| ライト | HemisphereLight(空色/地面色) + DirectionalLight(キー、castShadow。v1.3で影有効化) + 弱い DirectionalLight(フィル) |
 | 粘土マテリアル | MeshStandardMaterial { vertexColors: true, roughness: 0.9, metalness: 0 } — マットな粘土質感(F-01-02) |
 | 背景 | 暖色系の淡いグラデーション(和菓子の雰囲気) |
 | カーソル | ヒット点に接平面向きのリング(RingGeometry)。半径=ブラシ半径。非ヒット時は非表示(F-03-11) |
@@ -186,6 +212,7 @@ export class ClayScene {
 | sculpting | pointerup / pointerleave | idle へ。変更があれば `onStrokeEnd()` 通知(履歴確定) |
 
 - `setPointerCapture` により、ドラッグ中にビューポート外へ出てもストロークを追跡する。
+- **三角棒(sankaku)の処理(v1.5)**: pointerdown で `GrooveStroke` を生成。各適用では生のヒット位置をそのまま使わず、**指数移動平均(追従率α=0.25)で平滑化した位置・法線**を用い、前回平滑化点→今回平滑化点の線分を `GrooveStroke.apply` で彫る。手ぶれ(入力ジッター)が吸収され、線がジグザグにならない。カーソルリングは半径ではなく `grooveWidth(strength)` を表示する。
 - ブラシ適用はpointermoveイベント駆動だが、**最短適用間隔 25ms** のスロットリングを行う(v1.1追加)。高レートのマウス(120Hz以上)でも適用回数が毎秒約40回に抑えられ、ポインティングデバイスによらず繊細な操作感となる。
 
 ### 3.2 `src/app/App.ts` — 状態管理・結線
@@ -212,7 +239,7 @@ export class ClayScene {
 
 - コンストラクタで DOM を構築し、コールバック集 `ToolbarCallbacks` を受け取る(UI層→アプリ層は関数呼び出しのみ。逆依存なし)。
 - 公開メソッド: `setUndoEnabled(b)`, `setRedoEnabled(b)`, `setActiveTool(kind)`。
-- ツールボタン7種 + スライダー2種(半径 0.05–0.8 step0.01 初期値0.3 / 強さ 0.1–1.0 step0.05 初期値0.3)+ パレット8色 + カラーピッカー + 全体を塗る + 形状2種(球/基本形、v1.2変更)+ Undo/Redo/リセット/保存/読込。
+- ツールボタン8種(三角棒を含む) + スライダー2種(半径 0.05–0.8 step0.01 初期値0.3 / 強さ 0.1–1.0 step0.05 初期値0.3)+ パレット8色 + カラーピッカー + 全体を塗る + 形状2種(球/基本形、v1.2変更)+ Undo/Redo/リセット/保存/読込。
 - 道具グリッドの直下に、選択中の道具の効果説明を常時表示する(`.tool-desc`。道具の違いを1行で伝える。v1.1追加)。
 
 **パレット定義(F-04-03)**

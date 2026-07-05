@@ -13,11 +13,12 @@ export type BrushKind =
   | 'pinch'
   | 'inflate'
   | 'flatten'
+  | 'sankaku' // 三角棒(線引き)。点ブラシではなく線分彫りで適用される
   | 'paint';
 
 export interface BrushParams {
   kind: BrushKind;
-  radius: number; // 0.05..0.8
+  radius: number; // 0.05..0.8(sankaku は半径不使用、太さ・深さは strength で決まる)
   strength: number; // 0.1..1.0
   color: [number, number, number]; // paint 用 RGB (0..1)
 }
