@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="860" viewBox="0 0 1200 860">
+  <defs>
+    <style>
+      .box { fill: #ffffff; stroke: #1f2937; stroke-width: 2; rx: 8; }
+      .decision { fill: #fff7ed; stroke: #c2410c; stroke-width: 2; }
+      .title { font: 700 22px 'Segoe UI', 'Noto Sans JP', sans-serif; fill: #111827; }
+      .text { font: 15px 'Segoe UI', 'Noto Sans JP', sans-serif; fill: #1f2937; }
+      .arrow { stroke: #4b5563; stroke-width: 2.5; marker-end: url(#arrow); fill: none; }
+      .yesno { font: 600 13px 'Segoe UI', 'Noto Sans JP', sans-serif; fill: #7c2d12; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4b5563"/>
+    </marker>
+  </defs>
+
+  <text class="title" x="30" y="40">スカルプト処理フロー</text>
+
+  <rect class="box" x="380" y="70" width="440" height="70"/>
+  <text class="text" x="400" y="110">pointerdown (左): ストローク開始、現在状態を履歴候補として記録</text>
+
+  <rect class="box" x="470" y="180" width="260" height="60"/>
+  <text class="text" x="520" y="217">pointermove</text>
+
+  <rect class="box" x="330" y="280" width="540" height="70"/>
+  <text class="text" x="350" y="320">画面座標をレイキャストし、粘土表面ヒット点を取得</text>
+
+  <polygon class="decision" points="600,390 760,460 600,530 440,460"/>
+  <text class="text" x="555" y="467">ヒットあり?</text>
+
+  <rect class="box" x="330" y="570" width="540" height="60"/>
+  <text class="text" x="350" y="606">ブラシ適用: コア層 positions / colors 更新</text>
+
+  <rect class="box" x="330" y="660" width="540" height="60"/>
+  <text class="text" x="350" y="696">法線再計算: 影響頂点近傍 または 全体</text>
+
+  <rect class="box" x="330" y="750" width="540" height="60"/>
+  <text class="text" x="350" y="786">描画層へ差分同期: GPU バッファ更新</text>
+
+  <rect class="box" x="900" y="390" width="260" height="60"/>
+  <text class="text" x="930" y="426">pointerup</text>
+
+  <rect class="box" x="900" y="490" width="260" height="80"/>
+  <text class="text" x="920" y="525">ストローク確定</text>
+  <text class="text" x="920" y="548">履歴へ push、Redo 破棄</text>
+
+  <line class="arrow" x1="600" y1="140" x2="600" y2="180"/>
+  <line class="arrow" x1="600" y1="240" x2="600" y2="280"/>
+  <line class="arrow" x1="600" y1="350" x2="600" y2="390"/>
+
+  <line class="arrow" x1="600" y1="530" x2="600" y2="570"/>
+  <text class="yesno" x="620" y="556">Yes</text>
+
+  <line class="arrow" x1="600" y1="630" x2="600" y2="660"/>
+  <line class="arrow" x1="600" y1="720" x2="600" y2="750"/>
+
+  <path class="arrow" d="M 870 780 C 980 780, 980 220, 730 210"/>
+
+  <line class="arrow" x1="760" y1="460" x2="900" y2="420"/>
+  <text class="yesno" x="790" y="430">No</text>
+
+  <line class="arrow" x1="1030" y1="450" x2="1030" y2="490"/>
+</svg>

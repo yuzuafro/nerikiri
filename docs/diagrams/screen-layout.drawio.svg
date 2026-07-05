@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <defs>
+    <style>
+      .frame { fill: #ffffff; stroke: #111827; stroke-width: 2; }
+      .header { fill: #f3f4f6; stroke: #111827; stroke-width: 2; }
+      .toolbar { fill: #f9fafb; stroke: #111827; stroke-width: 2; }
+      .viewport { fill: #eff6ff; stroke: #111827; stroke-width: 2; }
+      .guide { fill: #f3f4f6; stroke: #111827; stroke-width: 2; }
+      .title { font: 700 22px 'Segoe UI', 'Noto Sans JP', sans-serif; fill: #111827; }
+      .label { font: 600 18px 'Segoe UI', 'Noto Sans JP', sans-serif; fill: #111827; }
+      .text { font: 15px 'Segoe UI', 'Noto Sans JP', sans-serif; fill: #374151; }
+    </style>
+  </defs>
+
+  <rect class="frame" x="20" y="20" width="1160" height="680"/>
+  <rect class="header" x="20" y="20" width="1160" height="80"/>
+  <text class="title" x="45" y="70">◆ nendo - 粘土細工シミュレーター</text>
+
+  <rect class="toolbar" x="20" y="100" width="300" height="540"/>
+  <rect class="viewport" x="320" y="100" width="860" height="540"/>
+  <rect class="guide" x="20" y="640" width="1160" height="60"/>
+
+  <text class="label" x="40" y="135">道具</text>
+  <text class="text" x="40" y="165">[引く] [押す]</text>
+  <text class="text" x="40" y="190">[なめらか] [つまむ]</text>
+  <text class="text" x="40" y="215">[ふくらます] [ならす] [塗る]</text>
+  <text class="text" x="40" y="250">------------------------------</text>
+  <text class="text" x="40" y="275">半径   ----o----</text>
+  <text class="text" x="40" y="300">強さ   ----o----</text>
+  <text class="text" x="40" y="335">------------------------------</text>
+  <text class="text" x="40" y="360">色  ● ● ● ● ● ● ● ●</text>
+  <text class="text" x="40" y="385">[任意色] [全体を塗る]</text>
+  <text class="text" x="40" y="420">------------------------------</text>
+  <text class="text" x="40" y="445">形 [球] [基本形]</text>
+  <text class="text" x="40" y="470">[元に戻す] [やり直す]</text>
+  <text class="text" x="40" y="495">[リセット]</text>
+  <text class="text" x="40" y="520">[保存] [読み込み]</text>
+
+  <text class="label" x="625" y="360">3D ビューポート</text>
+  <text class="text" x="580" y="388">(粘土メッシュ表示領域)</text>
+
+  <text class="text" x="40" y="677">左ドラッグ: 変形 / 右ドラッグ: 回転 / ホイール: ズーム</text>
+</svg>
